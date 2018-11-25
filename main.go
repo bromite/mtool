@@ -8,14 +8,15 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"./getopt"
 )
 
 var (
-	verifyExitCode int
-	verbose        bool
+	nonVerifyingFiles, totalFiles uint64
+	verbose                       bool
 )
 
 func main() {
@@ -152,6 +153,10 @@ func main() {
 		mustScanGitLsInput(inputScanner, func(lineNo int, fileName, sha1 string, mtime time.Time) error {
 			wg.Add(1)
 			go func() {
+				defer func() {
+					wg.Done()
+					res <- struct{}{}
+				}()
 				<-res
 				err := restoreCallback(m, fileName, sha1, mtime, verify)
 				if err != nil {
@@ -159,8 +164,6 @@ func main() {
 					fmt.Fprintf(os.Stderr, "ERROR: line %d: %v\n", lineNo, err)
 					os.Exit(20)
 				}
-				wg.Done()
-				res <- struct{}{}
 			}()
 
 			return nil
@@ -169,9 +172,13 @@ func main() {
 		// wait for all goroutines to complete
 		wg.Wait()
 
+		if verbose {
+			fmt.Fprintf(os.Stderr, "mtool: %d/%d files verified successfully\n", totalFiles-nonVerifyingFiles, totalFiles)
+		}
+
 		if verify {
 			// return 0 only when no changes are needed
-			os.Exit(verifyExitCode)
+			os.Exit(int(nonVerifyingFiles))
 		}
 
 		return
@@ -185,25 +192,27 @@ func restoreCallback(m map[string]*entry, fileName, sha1 string, mtime time.Time
 	if e, ok := m[fileName]; !ok {
 		return nil
 	} else {
+		// not deleting from map since it is accessed concurrently
 		if e.sha1 != sha1 {
 			return nil
 		}
 		expectedMtime = e.mtime
 	}
 
+	atomic.AddUint64(&totalFiles, 1)
+
 	foundMtime := mtime.UnixNano()
 	if foundMtime != expectedMtime.UnixNano() {
+		atomic.AddUint64(&nonVerifyingFiles, 1)
 		if verifyOnly {
 			if verbose {
 				fmt.Fprintf(os.Stderr, "%s: modified time expected %d but found %d\n", fileName, expectedMtime.UnixNano(), foundMtime)
 			}
-			// update global exit code
-			verifyExitCode++
 		} else {
 			// set the mtime; atime is not preserved
 			err := os.Chtimes(fileName, time.Now(), expectedMtime)
 			if err == nil && verbose {
-				fmt.Fprintf(os.Stderr, "%s: changed modified time from %v to %v\n", mtime, expectedMtime)
+				fmt.Fprintf(os.Stderr, "%s: changed modified time from %v to %v\n", fileName, mtime, expectedMtime)
 			}
 			return err
 		}
