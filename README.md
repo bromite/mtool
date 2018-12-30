@@ -20,7 +20,7 @@ did not change and if it differs from the one stored in the mtool snapshot.
 # Usage
 
 ```
-Usage: mtool [-achnrv] [-i value] [-m value] [-o value] [parameters ...]
+Usage: mtool [-achnrsv] [-i value] [-m value] [-o value] [parameters ...]
  -a, --append       Append to existing mtool snapshot, if any; only valid when
                     creating snapshot and when not using stdout
  -c, --create       create mtool snapshot; this is the default action
@@ -36,6 +36,8 @@ Usage: mtool [-achnrv] [-i value] [-m value] [-o value] [parameters ...]
                     verification/restore; 1024 is the default
  -r, --restore      restore reference timestamps into current filesystem from
                     mtool snapshot, if any changed
+ -s, --ignore-missing
+                    Ignore missing files during verify/restore
  -v, --verbose      Be verbose about mtime differences found during
                     verify/restore
 ```

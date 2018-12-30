@@ -17,6 +17,7 @@ import (
 var (
 	nonVerifyingFiles, totalFiles uint64
 	verbose                       bool
+	ignoreMissing                 = true
 )
 
 func main() {
@@ -32,6 +33,7 @@ func main() {
 	getopt.StringVarLong(&mtoolFileName, "snapshot", 'm', "mtool snapshot filename; - is for stdout (default)")
 	getopt.BoolVarLong(&append, "append", 'a', "Append to existing mtool snapshot, if any; only valid when creating snapshot and when not using stdout")
 	getopt.BoolVarLong(&verbose, "verbose", 'v', "Be verbose about mtime differences found during verify/restore")
+	getopt.BoolVarLong(&ignoreMissing, "ignore-missing", 's', "Ignore missing files during verify/restore")
 	getopt.BoolVarLong(&help, "help", 'h', "display help and exit")
 	getopt.BoolVarLong(&create, "create", 'c', "create mtool snapshot; this is the default action")
 	getopt.BoolVarLong(&verify, "verify", 'n', "verify that reference timestamps in current filesystem and mtool snapshot are the same")
@@ -280,6 +282,12 @@ func mustScanGitLsInput(scanner *bufio.Scanner, fn gitLsCallback) {
 		fileName := parts[1]
 		s, err := os.Stat(fileName)
 		if err != nil {
+			if ignoreMissing && os.IsNotExist(err) {
+				if verbose {
+					fmt.Fprintf(os.Stderr, "Line %d: ignoring missing file %q\n", lineNo, fileName)
+				}
+				continue
+			}
 			fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
 			os.Exit(15)
 		}
