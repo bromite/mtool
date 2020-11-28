@@ -24,7 +24,7 @@ func (s *listValue) String() string {
 }
 
 // List creates an option that returns a slice of strings.  The parameters
-// passed are converted from a comma seperated value list into a slice.
+// passed are converted from a comma separated value list into a slice.
 // Subsequent occurrences append to the list.
 func List(name rune, helpvalue ...string) *[]string {
 	return CommandLine.List(name, helpvalue...)

@@ -54,16 +54,16 @@ type Option interface {
 }
 
 type option struct {
-	short    rune   // 0 means no short name
-	long     string // "" means no long name
 	isLong   bool   // True if they used the long name
 	flag     bool   // true if a boolean flag
-	defval   string // default value
 	optional bool   // true if we take an optional value
+	short    rune   // 0 means no short name
+	count    int    // number of times we have seen this option
+	long     string // "" means no long name
+	defval   string // default value
 	help     string // help message
 	where    string // file where the option was defined
 	value    Value  // current value of option
-	count    int    // number of times we have seen this option
 	name     string // name of the value (for usage)
 	uname    string // name of the option (for usage)
 }

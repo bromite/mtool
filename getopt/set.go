@@ -60,7 +60,7 @@ func New() *Set {
 	return s
 }
 
-// The default set of command-line options.
+// CommandLine is the default set of command-line options.
 var CommandLine = New()
 
 // PrintUsage calls PrintUsage in the default option set.

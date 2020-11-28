@@ -184,7 +184,7 @@
 //      return CommandLine.Option(...) {
 //  }
 //
-// To simplfy documentation, typically only the main top-level function is fully
+// To simplify documentation, typically only the main top-level function is fully
 // documented.  The others will have documentation when there is something
 // special about them.
 //
@@ -400,7 +400,7 @@ func (s *Set) Parse(args []string) {
 // Getopt returns nil when all options have been processed (a non-option
 // argument was encountered, "--" was encountered, or fn returned false).
 //
-// On error getopt returns a refernce to an InvalidOption (which implements
+// On error getopt returns a reference to an InvalidOption (which implements
 // the error interface).
 func (s *Set) Getopt(args []string, fn func(Option) bool) (err error) {
 	s.State = InProgress
